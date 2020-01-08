@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Setting the random seed, feel free to change it and see different solutions.
-np.random.seed(42)
-
 def stepFunction(t):
     if t >= 0:
         return 1
@@ -13,11 +10,6 @@ def stepFunction(t):
 def prediction(X, W, b):
     return stepFunction((np.matmul(X,W)+b)[0])
 
-# TODO: Fill in the code below to implement the perceptron trick.
-# The function should receive as inputs the data X, the labels y,
-# the weights W (as an array), and the bias b,
-# update the weights and bias W, b, according to the perceptron algorithm,
-# and return W and b.
 def perceptronStep(X, y, W, b, learn_rate = 0.01):
     for i in range(len(X)):
         y_hat = prediction(X[i],W,b)
@@ -31,12 +23,8 @@ def perceptronStep(X, y, W, b, learn_rate = 0.01):
             b -= learn_rate
     return W, b
     
-# This function runs the perceptron algorithm repeatedly on the dataset,
-# and returns a few of the boundary lines obtained in the iterations,
-# for plotting purposes.
-# Feel free to play with the learning rate and the num_epochs,
-# and see your results plotted below.
-def trainPerceptronAlgorithm(X, y, learn_rate = 0.01, num_epochs = 50):
+
+def trainPerceptronAlgorithm(X, y, learn_rate = 0.01, num_epochs = 100):
     x_min, x_max = min(X.T[0]), max(X.T[0])
     y_min, y_max = min(X.T[1]), max(X.T[1])
     W = np.array(np.random.rand(2,1))
@@ -64,8 +52,9 @@ for inputt, target in zip(X, y):
 # plt.figure()
 x = np.linspace(-1, 1, 5)
 c = 1
+
 for i in result:
-    if c == 1 or c == 10 or c == 25 or c ==50:
+    if c == 1 or c == 10 or c == 25 or c ==100:
         x_r = float(i[0])
         y_r = float(i[1])
         y = x_r*x+y_r
