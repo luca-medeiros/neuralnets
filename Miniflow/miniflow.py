@@ -43,17 +43,53 @@ class Input(Node):
             self.value = value
 
 class Linear(Node):
-    def __init__(self, inputs, weights, bias):
-        Node.__init__(self, [inputs, weights, bias])
-
-        # NOTE: The weights and bias properties here are not
-        # numbers, but rather references to other nodes.
-        # The weight and bias values are stored within the
-        # respective nodes.
+    def __init__(self, X, W, b):
+        # Notice the ordering of the input nodes passed to the
+        # Node constructor.
+        Node.__init__(self, [X, W, b])
 
     def forward(self):
-        self.value = np.sum(np.matmul(self.inbound_nodes[0].value, self.inbound_nodes[1].value))
-        self.value += self.inbound_nodes[2].value
+        inputs = self.inbound_nodes[0].value
+        weights = self.inbound_nodes[1].value
+        biases = self.inbound_nodes[2].value
+
+        mul = np.dot(inputs, weights)
+        self.value = mul + biases
+
+
+class Sigmoid(Node):
+    def __init__(self, node):
+        Node.__init__(self, [node])
+
+    def _sigmoid(self, x):
+        return 1/(1+np.exp(-x))
+
+
+    def forward(self):
+        self.value = self._sigmoid(self.inbound_nodes[0].value)
+
+class MSE(Node):
+    def __init__(self, y, a):
+        """
+        The mean squared error cost function.
+        Should be used as the last node for a network.
+        """
+        # Call the base class' constructor.
+        Node.__init__(self, [y, a])
+
+    def forward(self):
+        """
+        Calculates the mean squared error.
+        """
+        # NOTE: We reshape these to avoid possible matrix/vector broadcast
+        # errors.
+        m = 1 #training size
+        y = self.inbound_nodes[0].value.reshape(-1, 1)
+        a = self.inbound_nodes[1].value.reshape(-1, 1)
+
+        cost = 1./m * np.sum(np.square(y-a))
+        self.value = cost
+
 class Add(Node):
     # You may need to change this...
     def __init__(self, *inputs):
