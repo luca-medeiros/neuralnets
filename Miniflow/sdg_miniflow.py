@@ -69,9 +69,7 @@ class Input(Node):
         # Weights and bias may be inputs, so you need to sum
         # the gradient from output gradients.
         for n in self.outbound_nodes:
-            grad_cost = n.gradients[self]
-            self.gradients[self] += grad_cost * 1
-
+            self.gradients[self] += n.gradients[self]
 
 class Linear(Node):
     """
@@ -97,7 +95,6 @@ class Linear(Node):
         """
         # Initialize a partial for each of the inbound_nodes.
         self.gradients = {n: np.zeros_like(n.value) for n in self.inbound_nodes}
-        
         # Cycle through the outputs. The gradient will change depending
         # on each output, so the gradients are summed over all outputs.
         for n in self.outbound_nodes:
@@ -142,17 +139,11 @@ class Sigmoid(Node):
         """
         # Initialize the gradients to 0.
         self.gradients = {n: np.zeros_like(n.value) for n in self.inbound_nodes}
-        print(self.gradients)
-        # Cycle through the outputs. The gradient will change depending
-        # on each output, so the gradients are summed over all outputs.
+        # Sum the partial with respect to the input over all the outputs.
         for n in self.outbound_nodes:
-
             grad_cost = n.gradients[self]
-    
             sigmoid = self.value
             self.gradients[self.inbound_nodes[0]] += sigmoid * (1 - sigmoid) * grad_cost
-            print(self.gradients)
-
 
 
 class MSE(Node):
@@ -175,7 +166,7 @@ class MSE(Node):
         # (3,1) we get an array of shape(3,3) as the result when we want
         # an array of shape (3,1) instead.
         #
-        # Making both arrays (3,1) ensures the result is (3,1) and does
+        # Making both arrays (3,1) insures the result is (3,1) and does
         # an elementwise subtraction as expected.
         y = self.inbound_nodes[0].value.reshape(-1, 1)
         a = self.inbound_nodes[1].value.reshape(-1, 1)
@@ -188,9 +179,6 @@ class MSE(Node):
     def backward(self):
         """
         Calculates the gradient of the cost.
-
-        This is the final node of the network so outbound nodes
-        are not a concern.
         """
         self.gradients[self.inbound_nodes[0]] = (2 / self.m) * self.diff
         self.gradients[self.inbound_nodes[1]] = (-2 / self.m) * self.diff
@@ -254,3 +242,20 @@ def forward_and_backward(graph):
     # see: https://docs.python.org/2.3/whatsnew/section-slices.html
     for n in graph[::-1]:
         n.backward()
+
+
+def sgd_update(trainables, learning_rate=1e-2):
+    """
+    Updates the value of each trainable with SGD.
+
+    Arguments:
+
+        `trainables`: A list of `Input` Nodes representing weights/biases.
+        `learning_rate`: The learning rate.
+    """
+    # TODO: update all the `trainables` with SGD
+    # You can access and assign the value of a trainable with `value` attribute.
+    # Example:
+    for t in trainables:
+        partial = t.gradients[t]
+        t.value -= learning_rate * partial
